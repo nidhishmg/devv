@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Devaki</string>
+    <string name="connect">Connect</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="disconnected">Disconnected</string>
+    <string name="connected">Connected to %1$s</string>
+    <string name="connecting">Connecting...</string>
+    <string name="forward">FWD</string>
+    <string name="back">BACK</string>
+    <string name="left">LEFT</string>
+    <string name="right">RIGHT</string>
+    <string name="stop">STOP</string>
+    <string name="follow_mode">Follow Mode</string>
+    <string name="base_speed">Base Speed:</string>
+    <string name="wifi_simulator">Wi-Fi Simulator</string>
+    <string name="host">Host</string>
+    <string name="port">Port</string>
+    <string name="default_host">192.168.1.100</string>
+    <string name="default_port">9000</string>
+    <string name="permission_camera_denied">Camera permission denied. Follow mode requires camera access.</string>
+    <string name="permission_mic_denied">Microphone permission denied. Voice control requires microphone access.</string>
+    <string name="connection_failed">Connection failed</string>
+</resources>
