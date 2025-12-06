@@ -1,5 +1,5 @@
 /*
- * Devaki ESP32 Robot Controller
+ * DEV ESP32 Robot Controller
  * 
  * Features:
  * - Wi-Fi TCP server on port 9000

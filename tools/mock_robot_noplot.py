@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Devaki Mock Robot Server (Console Only - No Matplotlib)
+DEV Mock Robot Server (Console Only - No Matplotlib)
 Simple TCP server that accepts robot commands and prints to console.
 """
 

@@ -1,4 +1,4 @@
-# Devaki - Setup Guide
+# DEV - Setup Guide
 
 ## Complete Setup Instructions
 
@@ -193,7 +193,7 @@ For real device on same network:
 - Rebuild project
 
 ### "Permission denied"
-- Go to Settings → Apps → Devaki → Permissions
+- Go to Settings → Apps → DEV → Permissions
 - Enable Camera and Microphone
 - Restart app
 

@@ -1,4 +1,4 @@
-# Devaki Robot Controller - API Reference
+# DEV Robot Controller - API Reference
 
 ## Robot Command Protocol
 
@@ -127,7 +127,7 @@ Content-Type: application/json
 {
   "model": "phi3:mini",
   "prompt": "<user query>",
-  "system": "You are Devaki, a brief helpful robot. Today is <yyyy-mm-dd>. Answer in one short sentence.",
+  "system": "You are DEV, a brief helpful robot. Today is <yyyy-mm-dd>. Answer in one short sentence.",
   "stream": false
 }
 ```

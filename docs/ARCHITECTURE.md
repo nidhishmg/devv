@@ -1,8 +1,8 @@
-# Devaki Robot Controller - Architecture
+# DEV Robot Controller - Architecture
 
 ## System Overview
 
-Devaki is a voice-driven Android robot controller that combines offline speech recognition, natural text-to-speech, computer vision face tracking, and TCP/Bluetooth communication to control a mobile robot platform.
+DEV is a voice-driven Android robot controller that combines offline speech recognition, natural text-to-speech, computer vision face tracking, and TCP/Bluetooth communication to control a mobile robot platform.
 
 ```
  ┌──────────────┐        TCP (Wi-Fi) / BT SPP        ┌──────────────┐

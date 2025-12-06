@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Devaki Mock Robot Server with Matplotlib Visualization
+DEV Mock Robot Server with Matplotlib Visualization
 TCP server that accepts robot commands and displays live wheel speed chart.
 """
 
@@ -129,7 +129,7 @@ def update_plot(frame):
     plt.axhline(y=0, color='gray', linestyle='--', alpha=0.5)
     plt.xlabel('Time (s)')
     plt.ylabel('Speed')
-    plt.title('Devaki Robot Wheel Speeds')
+    plt.title('DEV Robot Wheel Speeds')
     plt.legend(loc='upper right')
     plt.ylim(-255, 255)
     plt.grid(True, alpha=0.3)

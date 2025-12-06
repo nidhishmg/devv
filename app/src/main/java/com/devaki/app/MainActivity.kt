@@ -346,7 +346,7 @@ class MainActivity : AppCompatActivity() {
     
     private suspend fun queryLLM(query: String): String = withContext(Dispatchers.IO) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val systemPrompt = "You are Devaki, a brief helpful robot. Today is $today. Answer in one short sentence."
+        val systemPrompt = "You are DEV, a brief helpful robot. Today is $today. Answer in one short sentence."
         
         val json = """
             {

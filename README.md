@@ -1,8 +1,8 @@
-# Devaki 🤖
+# DEV 🤖
 
 **Voice-Driven Android Robot Controller with Natural Interaction**
 
-Devaki is a complete Android application that turns a Samsung tablet into an intelligent robot controller. It combines offline voice recognition, natural text-to-speech, computer vision face tracking, and wireless communication to create a responsive, voice-controlled mobile robot platform.
+DEV is a complete Android application that turns a Samsung tablet into an intelligent robot controller. It combines offline voice recognition, natural text-to-speech, computer vision face tracking, and wireless communication to create a responsive, voice-controlled mobile robot platform.
 
 ## ✨ Features
 
