@@ -54,9 +54,7 @@ dependencies {
     implementation 'com.google.mlkit:face-detection:16.1.6'
     
     // Vosk Speech Recognition
-    implementation('com.alphacephei:vosk-android:0.3.32') {
-        exclude group: 'org.json', module: 'json'
-    }
+    implementation 'org.vosk:android:0.3.47'
     implementation 'net.java.dev.jna:jna:5.13.0@aar'
     
     // HTTP for LLM

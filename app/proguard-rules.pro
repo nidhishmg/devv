@@ -8,6 +8,8 @@
 # Keep Vosk native libraries
 -keep class org.vosk.** { *; }
 -keep class com.sun.jna.** { *; }
+-dontwarn org.vosk.**
 
 # Keep ML Kit
 -keep class com.google.mlkit.** { *; }
+-dontwarn com.google.mlkit.**

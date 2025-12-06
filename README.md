@@ -51,30 +51,27 @@ DEV is a complete Android application that turns a Samsung tablet into an intell
 
 ## 🚀 Quick Start
 
-### 1. Clone Repository
+**One-Command Setup:**
 ```bash
-git clone https://github.com/yourusername/devaki.git
-cd devaki
+git clone https://github.com/nidhishmg/devv.git
+cd devv
+# Download Vosk model (130MB - required for voice recognition)
+curl -L https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip -o vosk.zip
+unzip vosk.zip -d app/src/main/assets/
+rm vosk.zip
 ```
 
-### 2. Download Vosk Model
-Download the Vosk English model and place it in the assets folder:
-```bash
-cd app/src/main/assets/
-wget https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
-unzip vosk-model-small-en-us-0.15.zip
-```
+**Then open in Android Studio:**
+1. File → Open → Select the `devv` folder
+2. Wait for Gradle sync to complete
+3. Connect your Android device (enable USB debugging)
+4. Click Run ▶️ button
+5. Grant Camera & Microphone permissions when prompted
+6. Say **"Hey Dev"** to wake it up!
 
-### 3. Build Android App
-Open the project in Android Studio and build:
-- File → Open → Select `devaki` folder
-- Build → Make Project
-- Run on device or emulator
-
-### 4. Test with Mock Server
+**Test without hardware:**
 ```bash
-cd tools/
-python mock_robot_noplot.py
+python tools/mock_robot_noplot.py
 ```
 
 In the app:
