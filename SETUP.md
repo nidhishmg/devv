@@ -214,6 +214,22 @@ For real device on same network:
 - Ensure Google TTS or Samsung TTS is installed
 - Test TTS with sample text
 
+### "LLM not responding" / "I don't know"
+**For Ollama (local):**
+- Verify Ollama is running on your PC
+- Test: `curl http://YOUR_PC_IP:11434/api/tags`
+- Check model is installed: `ollama list`
+- Ensure firewall allows port 11434
+
+**For Gemini (recommended for news/weather):**
+1. Get free API key: https://aistudio.google.com/app/apikey
+2. Long-press robot face in app → Settings
+3. Enable "Use Gemini"
+4. Paste API key
+5. Try: "Hey Dev, what's today's news?"
+
+> **Gemini benefits:** Real-time web data, no local server needed, free tier (1500 req/day)
+
 ## Next Steps
 
 - Tune follow mode Kp gain for your robot

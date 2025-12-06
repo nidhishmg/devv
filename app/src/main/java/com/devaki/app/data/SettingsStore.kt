@@ -18,6 +18,8 @@ class SettingsStore(private val context: Context) {
         private val KEY_FOLLOW_ENABLED = booleanPreferencesKey("follow_enabled")
         private val KEY_SIMULATOR = booleanPreferencesKey("simulator")
         private val KEY_LLM_URL = stringPreferencesKey("llm_url")
+        private val KEY_GEMINI_ENABLED = booleanPreferencesKey("gemini_enabled")
+        private val KEY_GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         
         const val DEFAULT_HOST = "192.168.1.100"
         const val DEFAULT_PORT = 9000
@@ -88,6 +90,28 @@ class SettingsStore(private val context: Context) {
     suspend fun setLlmUrl(value: String) {
         context.dataStore.edit { prefs ->
             prefs[KEY_LLM_URL] = value
+        }
+    }
+    
+    // Gemini Enabled
+    val geminiEnabled: Flow<Boolean> = context.dataStore.data.map { prefs ->
+        prefs[KEY_GEMINI_ENABLED] ?: false
+    }
+    
+    suspend fun setGeminiEnabled(value: Boolean) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_GEMINI_ENABLED] = value
+        }
+    }
+    
+    // Gemini API Key
+    val geminiApiKey: Flow<String> = context.dataStore.data.map { prefs ->
+        prefs[KEY_GEMINI_API_KEY] ?: ""
+    }
+    
+    suspend fun setGeminiApiKey(value: String) {
+        context.dataStore.edit { prefs ->
+            prefs[KEY_GEMINI_API_KEY] = value
         }
     }
 }

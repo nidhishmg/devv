@@ -14,6 +14,7 @@ import com.devaki.app.brain.IntentRouter
 import com.devaki.app.control.FollowController
 import com.devaki.app.data.SettingsStore
 import com.devaki.app.databinding.ActivityMainBinding
+import com.devaki.app.llm.GeminiClient
 import com.devaki.app.net.RateLimiter
 import com.devaki.app.net.TcpClient
 import com.devaki.app.ui.FaceView
@@ -75,6 +76,8 @@ class MainActivity : AppCompatActivity() {
         .readTimeout(30, TimeUnit.SECONDS)
         .build()
     private var llmUrl = SettingsStore.DEFAULT_LLM_URL
+    private var geminiClient: GeminiClient? = null
+    private var geminiEnabled = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,6 +106,18 @@ class MainActivity : AppCompatActivity() {
         }
         lifecycleScope.launch {
             settings.llmUrl.collect { llmUrl = it }
+        }
+        lifecycleScope.launch {
+            settings.geminiEnabled.collect { geminiEnabled = it }
+        }
+        lifecycleScope.launch {
+            settings.geminiApiKey.collect { apiKey ->
+                geminiClient = if (apiKey.isNotEmpty()) {
+                    GeminiClient(apiKey)
+                } else {
+                    null
+                }
+            }
         }
         
         // TCP Client
@@ -348,6 +363,17 @@ class MainActivity : AppCompatActivity() {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val systemPrompt = "You are DEV, a brief helpful robot. Today is $today. Answer in one short sentence."
         
+        // Try Gemini first if enabled and query needs web search
+        if (geminiEnabled && geminiClient != null && GeminiClient.needsWebSearch(query)) {
+            Log.d(TAG, "Using Gemini for web-grounded query")
+            val result = geminiClient?.query(query, systemPrompt)
+            if (result?.isSuccess == true) {
+                return@withContext result.getOrNull() ?: "I couldn't find that information."
+            }
+            Log.w(TAG, "Gemini failed, falling back to Ollama")
+        }
+        
+        // Fallback to Ollama
         val json = """
             {
                 "model": "phi3:mini",

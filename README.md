@@ -128,8 +128,25 @@ In the app:
 
 **Ask anything:**
 ```
-"What's the time?"  → Queries LLM and speaks answer
+"What time is it?"       → Queries local LLM
+"What's today's news?"   → Uses Gemini (if enabled) for real-time info
+"Tell me about the weather" → Gemini searches web and responds
 ```
+
+### LLM Configuration
+
+**Option 1: Local Ollama (offline, no news/weather)**
+- Install Ollama on your PC
+- Pull a model: `ollama pull phi3:mini`
+- Set LLM URL in app to your PC's IP: `http://192.168.1.5:11434`
+
+**Option 2: Gemini API (online, with real-time web data)** ⭐ Recommended
+1. Get free API key: https://aistudio.google.com/app/apikey
+2. In app, long-press the robot face to open settings
+3. Enable "Use Gemini" and paste your API key
+4. Now queries like "today's news" will search the web automatically!
+
+> **Tip:** Gemini is free (1500 requests/day), fast (~2-3s), and mobile-friendly. It automatically searches the web when needed.
 
 ### Manual Control
 
