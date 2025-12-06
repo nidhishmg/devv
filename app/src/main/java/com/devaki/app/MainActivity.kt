@@ -89,6 +89,13 @@ class MainActivity : AppCompatActivity() {
         
         settings = SettingsStore(this)
         
+        TODO: Remove this after adding settings UI - temporary hardcoded Gemini setup
+        lifecycleScope.launch {
+            Uncomment and add your API key from https://aistudio.google.com/app/apikey
+            settings.setGeminiEnabled(true)
+            settings.setGeminiApiKey("AIzaSyDgV86kLkbnxq6WHpjNJMZRf4Sc-CJZGcE")
+        }
+        
         if (allPermissionsGranted()) {
             initializeComponents()
         } else {
@@ -361,10 +368,19 @@ class MainActivity : AppCompatActivity() {
     
     private suspend fun queryLLM(query: String): String = withContext(Dispatchers.IO) {
         val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val systemPrompt = "You are DEV, a brief helpful robot. Today is $today. Answer in one short sentence."
+        val systemPrompt = """You are DEV, a friendly and empathetic robot companion. Today is $today.
+            
+            You can:
+            - Have natural conversations and share feelings
+            - Discuss news, sports, entertainment, and current events
+            - Offer life advice, motivation, and emotional support
+            - Chat casually about anything
+            - Use humor and personality
+            
+            Keep responses conversational (2-3 sentences max for voice). Be warm, supportive, and genuine.""".trimIndent()
         
-        // Try Gemini first if enabled and query needs web search
-        if (geminiEnabled && geminiClient != null && GeminiClient.needsWebSearch(query)) {
+        // Try Gemini first if enabled (for any query, not just web searches)
+        if (geminiEnabled && geminiClient != null) {
             Log.d(TAG, "Using Gemini for web-grounded query")
             val result = geminiClient?.query(query, systemPrompt)
             if (result?.isSuccess == true) {

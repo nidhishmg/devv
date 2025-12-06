@@ -96,12 +96,12 @@ class GeminiClient(private val apiKey: String) {
                 ))
             )))
             
-            // Generation config for concise responses
+            // Generation config for natural conversation
             add("generationConfig", JsonObject().apply {
-                addProperty("temperature", 0.7)
+                addProperty("temperature", 0.9)  // More creative and natural
                 addProperty("topP", 0.95)
                 addProperty("topK", 40)
-                addProperty("maxOutputTokens", 200)  // Keep responses brief
+                addProperty("maxOutputTokens", 150)  // 2-3 sentences for voice
             })
         }
         
