@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
+import android.media.audiofx.AutomaticGainControl
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import com.google.gson.JsonParser
@@ -21,13 +22,24 @@ class VoskEngine(private val context: Context) {
     
     companion object {
         private const val SAMPLE_RATE = 16000f
-        // Wake phrase aliases - tolerant matching
-        private val WAKE_ALIASES = listOf("hey dev", "hey dave", "hey deb", "hey dove")
+        // Wake phrase aliases - tolerant matching (easier to recognize)
+        private val WAKE_ALIASES = listOf(
+            // Short & clear wake words (easier to detect)
+            "hey robot", "hey bot", "robot", 
+            "okay robot", "ok robot",
+            // Original variants
+            "hey dev", "hey dave", "hey deb", "hey dove", "hey dead", "aid dev",
+            // Additional variants
+            "dev", "devaki", "hey devaki",
+            "listen", "wake up"
+        )
+        private const val SILENCE_TIMEOUT_MS = 2000L // Wait 2 seconds of silence before finalizing
     }
     
     private var model: Model? = null
     private var recognizer: Recognizer? = null
     private var audioRecord: AudioRecord? = null
+    private var agc: AutomaticGainControl? = null
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var isRecording = false
     private var isSpeaking = false
@@ -47,17 +59,21 @@ class VoskEngine(private val context: Context) {
     fun initialize(onReady: () -> Unit) {
         scope.launch {
             try {
-                // Copy model from assets if needed
-                val modelDir = File(context.filesDir, "models/vosk-model-small-en-us-0.15")
+                // Load external model from app's external files directory
+                // User must manually copy model to: Android/data/com.devaki.app/files/models/
+                val appFiles = context.getExternalFilesDir(null)
+                val modelDir = File(appFiles, "models/vosk-model-en-us-0.22-lgraph")
+                
                 if (!modelDir.exists()) {
-                    Log.d(TAG, "Copying Vosk model from assets...")
-                    copyAssets("vosk-model-small-en-us-0.15", modelDir)
-                    Log.d(TAG, "Model copied successfully")
+                    Log.e(TAG, "Vosk model not found at: ${modelDir.absolutePath}")
+                    Log.e(TAG, "Please copy vosk-model-en-us-0.22-lgraph to: Android/data/com.devaki.app/files/models/")
+                    throw RuntimeException("Vosk model not found! Copy to: Android/data/com.devaki.app/files/models/vosk-model-en-us-0.22-lgraph/")
                 }
                 
+                Log.d(TAG, "Loading Vosk model from: ${modelDir.absolutePath}")
                 model = Model(modelDir.absolutePath)
                 recognizer = Recognizer(model, SAMPLE_RATE)
-                Log.d(TAG, "Vosk model loaded")
+                Log.d(TAG, "Vosk model loaded successfully")
                 
                 withContext(Dispatchers.Main) {
                     onReady()
@@ -104,17 +120,33 @@ class VoskEngine(private val context: Context) {
                     AudioFormat.ENCODING_PCM_16BIT
                 )
                 
-                audioRecord = AudioRecord(
-                    MediaRecorder.AudioSource.MIC,
-                    SAMPLE_RATE.toInt(),
-                    AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    bufferSize
-                )
+                // Use VOICE_RECOGNITION for better sensitivity and noise rejection
+                audioRecord = AudioRecord.Builder()
+                    .setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                    .setAudioFormat(
+                        AudioFormat.Builder()
+                            .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                            .setSampleRate(SAMPLE_RATE.toInt())
+                            .setChannelMask(AudioFormat.CHANNEL_IN_MONO)
+                            .build()
+                    )
+                    .setBufferSizeInBytes(bufferSize * 2) // Larger buffer for stability
+                    .build()
+                
+                // Enable Automatic Gain Control for better mic sensitivity
+                audioRecord?.audioSessionId?.let { sessionId ->
+                    if (AutomaticGainControl.isAvailable()) {
+                        agc = AutomaticGainControl.create(sessionId)
+                        agc?.enabled = true
+                        Log.d(TAG, "AGC enabled for better mic sensitivity")
+                    } else {
+                        Log.w(TAG, "AGC not available on this device")
+                    }
+                }
                 
                 audioRecord?.startRecording()
                 isRecording = true
-                Log.d(TAG, "Vosk listening started")
+                Log.d(TAG, "Vosk listening started with VOICE_RECOGNITION source")
                 
                 val buffer = ShortArray(bufferSize)
                 
@@ -154,10 +186,14 @@ class VoskEngine(private val context: Context) {
             val json = JsonParser.parseString(jsonStr).asJsonObject
             val partial = json.get("partial")?.asString?.lowercase() ?: ""
             
+            if (partial.isNotEmpty()) {
+                Log.d(TAG, "Vosk partial: '$partial' (wakeHot=$wakeHot)")
+            }
+            
             // Check for wake aliases
             if (!wakeHot && WAKE_ALIASES.any { partial.contains(it) }) {
                 wakeHot = true
-                Log.d(TAG, "Wake detected: $partial")
+                Log.d(TAG, "✓ Wake detected: $partial")
                 scope.launch(Dispatchers.Main) {
                     onWake?.invoke()
                 }
@@ -185,12 +221,16 @@ class VoskEngine(private val context: Context) {
             val json = JsonParser.parseString(jsonStr).asJsonObject
             val text = json.get("text")?.asString?.trim() ?: ""
             
+            Log.d(TAG, "Vosk final: '$text' (wakeHot=$wakeHot)")
+            
             if (wakeHot && text.isNotEmpty()) {
                 wakeHot = false
-                Log.d(TAG, "Final command: $text")
+                Log.d(TAG, "✓ Final command received: '$text'")
                 scope.launch(Dispatchers.Main) {
                     onFinal?.invoke(text)
                 }
+            } else if (wakeHot) {
+                Log.d(TAG, "Waiting for command... (got empty text)")
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing final result", e)
@@ -208,6 +248,8 @@ class VoskEngine(private val context: Context) {
     
     fun stopListening() {
         isRecording = false
+        agc?.release()
+        agc = null
         audioRecord?.stop()
         audioRecord?.release()
         audioRecord = null

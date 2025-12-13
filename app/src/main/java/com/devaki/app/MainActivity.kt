@@ -89,9 +89,9 @@ class MainActivity : AppCompatActivity() {
         
         settings = SettingsStore(this)
         
-        TODO: Remove this after adding settings UI - temporary hardcoded Gemini setup
+        // TODO: Remove this after adding settings UI - temporary hardcoded Gemini setup
+        // Uncomment and add your API key from https://aistudio.google.com/app/apikey
         lifecycleScope.launch {
-            Uncomment and add your API key from https://aistudio.google.com/app/apikey
             settings.setGeminiEnabled(true)
             settings.setGeminiApiKey("AIzaSyDgV86kLkbnxq6WHpjNJMZRf4Sc-CJZGcE")
         }
@@ -195,22 +195,32 @@ class MainActivity : AppCompatActivity() {
         
         // Manual control buttons
         binding.btnForward.setOnClickListener { 
+            Toast.makeText(this, "Forward", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Forward button pressed")
             sendCommand("FWD")
             binding.faceView.setState(FaceView.State.MOVING)
         }
         binding.btnBack.setOnClickListener { 
+            Toast.makeText(this, "Back", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Back button pressed")
             sendCommand("BACK")
             binding.faceView.setState(FaceView.State.MOVING)
         }
         binding.btnLeft.setOnClickListener { 
+            Toast.makeText(this, "Left", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Left button pressed")
             sendCommand("LEFT")
             binding.faceView.setState(FaceView.State.MOVING)
         }
         binding.btnRight.setOnClickListener { 
+            Toast.makeText(this, "Right", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Right button pressed")
             sendCommand("RIGHT")
             binding.faceView.setState(FaceView.State.MOVING)
         }
         binding.btnStop.setOnClickListener { 
+            Toast.makeText(this, "Stop", Toast.LENGTH_SHORT).show()
+            Log.d(TAG, "Stop button pressed")
             sendCommand("STOP")
             binding.faceView.setState(FaceView.State.IDLE)
         }
