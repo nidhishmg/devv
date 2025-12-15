@@ -56,6 +56,8 @@ class VoskEngine(private val context: Context) {
         Log.d(TAG, "Vosk setSpeaking: $speaking")
     }
     
+    var onError: ((String) -> Unit)? = null
+    
     fun initialize(onReady: () -> Unit) {
         scope.launch {
             try {
@@ -65,9 +67,13 @@ class VoskEngine(private val context: Context) {
                 val modelDir = File(appFiles, "models/vosk-model-en-us-0.22-lgraph")
                 
                 if (!modelDir.exists()) {
+                    val errorMsg = "Vosk model not found! Copy vosk-model-en-us-0.22-lgraph to: Android/data/com.devaki.app/files/models/"
                     Log.e(TAG, "Vosk model not found at: ${modelDir.absolutePath}")
-                    Log.e(TAG, "Please copy vosk-model-en-us-0.22-lgraph to: Android/data/com.devaki.app/files/models/")
-                    throw RuntimeException("Vosk model not found! Copy to: Android/data/com.devaki.app/files/models/vosk-model-en-us-0.22-lgraph/")
+                    Log.e(TAG, errorMsg)
+                    withContext(Dispatchers.Main) {
+                        onError?.invoke(errorMsg)
+                    }
+                    return@launch
                 }
                 
                 Log.d(TAG, "Loading Vosk model from: ${modelDir.absolutePath}")
@@ -78,8 +84,11 @@ class VoskEngine(private val context: Context) {
                 withContext(Dispatchers.Main) {
                     onReady()
                 }
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 Log.e(TAG, "Failed to load Vosk model", e)
+                withContext(Dispatchers.Main) {
+                    onError?.invoke("Failed to load Vosk model: ${e.message}")
+                }
             }
         }
     }
@@ -264,3 +273,162 @@ class VoskEngine(private val context: Context) {
         Log.d(TAG, "Vosk engine released")
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

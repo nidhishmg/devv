@@ -164,6 +164,11 @@ class MainActivity : AppCompatActivity() {
         voskEngine.onFinal = { text ->
             handleVoiceCommand(text)
         }
+        voskEngine.onError = { error ->
+            Log.e(TAG, "Vosk error: $error")
+            Toast.makeText(this, error, Toast.LENGTH_LONG).show()
+            ttsEngine.speak("Voice model not found. Please copy the Vosk model to the device.")
+        }
         voskEngine.initialize {
             voskEngine.startListening()
             Log.d(TAG, "Vosk ready and listening")
