@@ -61,19 +61,27 @@ class VoskEngine(private val context: Context) {
     fun initialize(onReady: () -> Unit) {
         scope.launch {
             try {
-                // Load external model from app's external files directory
-                // User must manually copy model to: Android/data/com.devaki.app/files/models/
-                val appFiles = context.getExternalFilesDir(null)
-                val modelDir = File(appFiles, "models/vosk-model-en-us-0.22-lgraph")
+                // Try small model first (less memory), then large model
+                val smallModelExt = File(context.getExternalFilesDir(null), "models/vosk-model-small-en-us-0.15")
+                val largeModelExt = File(context.getExternalFilesDir(null), "models/vosk-model-en-us-0.22-lgraph")
                 
-                if (!modelDir.exists()) {
-                    val errorMsg = "Vosk model not found! Copy vosk-model-en-us-0.22-lgraph to: Android/data/com.devaki.app/files/models/"
-                    Log.e(TAG, "Vosk model not found at: ${modelDir.absolutePath}")
-                    Log.e(TAG, errorMsg)
-                    withContext(Dispatchers.Main) {
-                        onError?.invoke(errorMsg)
+                val modelDir = when {
+                    smallModelExt.exists() && smallModelExt.isDirectory -> {
+                        Log.d(TAG, "Found small model in external storage")
+                        smallModelExt
                     }
-                    return@launch
+                    largeModelExt.exists() && largeModelExt.isDirectory -> {
+                        Log.d(TAG, "Found large model in external storage")
+                        largeModelExt
+                    }
+                    else -> {
+                        val errorMsg = "Vosk model not found!\n\nCopy 'vosk-model-small-en-us-0.15' folder to:\nAndroid/data/com.devaki.app/files/models/"
+                        Log.e(TAG, errorMsg)
+                        withContext(Dispatchers.Main) {
+                            onError?.invoke(errorMsg)
+                        }
+                        return@launch
+                    }
                 }
                 
                 Log.d(TAG, "Loading Vosk model from: ${modelDir.absolutePath}")
