@@ -59,7 +59,8 @@ class VoskEngine(private val context: Context) {
     private var wakeHot = false
     
     // Always-on mode: process all speech without wake word
-    var alwaysOnMode = true
+    // Set to false to require wake word ("Robot", "Hey Robot")
+    var alwaysOnMode = false
     
     // Prevent barge-in while robot is speaking
     fun setSpeaking(speaking: Boolean) {
