@@ -160,14 +160,14 @@
                 android:gravity="end" />
         </LinearLayout>
 
-        <!-- Network Settings (Collapsed by default) -->
+        <!-- Network Settings -->
         <LinearLayout
             android:id="@+id/networkSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_marginTop="8dp"
-            android:visibility="gone">
+            android:gravity="center_vertical">
 
             <CheckBox
                 android:id="@+id/cbWifiSim"
