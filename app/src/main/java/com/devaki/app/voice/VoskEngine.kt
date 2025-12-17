@@ -31,9 +31,17 @@ class VoskEngine(private val context: Context) {
             "hey dev", "hey dave", "hey deb", "hey dove", "hey dead", "aid dev",
             // Additional variants
             "dev", "devaki", "hey devaki",
-            "listen", "wake up"
+            "listen", "wake up",
+            // Even more variants for better detection
+            "hello", "hi", "hey"
         )
         private const val SILENCE_TIMEOUT_MS = 2000L // Wait 2 seconds of silence before finalizing
+        
+        // Direct commands that work without wake word
+        private val DIRECT_COMMANDS = listOf(
+            "stop", "forward", "back", "backward", "left", "right",
+            "go", "move", "turn", "follow", "faster", "slower"
+        )
     }
     
     private var model: Model? = null
@@ -49,6 +57,9 @@ class VoskEngine(private val context: Context) {
     var onFinal: ((String) -> Unit)? = null
     
     private var wakeHot = false
+    
+    // Always-on mode: process all speech without wake word
+    var alwaysOnMode = true
     
     // Prevent barge-in while robot is speaking
     fun setSpeaking(speaking: Boolean) {
@@ -216,10 +227,10 @@ class VoskEngine(private val context: Context) {
                 }
             }
             
-            // Check for immediate commands like "stop" even without wake
-            if (!wakeHot && partial.contains("stop")) {
+            // Check for direct commands (work without wake word)
+            if (!wakeHot && DIRECT_COMMANDS.any { partial.contains(it) }) {
                 wakeHot = true // Treat as wakeup
-                Log.d(TAG, "Immediate stop command detected")
+                Log.d(TAG, "Direct command detected in partial: $partial")
                 scope.launch(Dispatchers.Main) {
                     onWake?.invoke()
                 }
@@ -238,16 +249,31 @@ class VoskEngine(private val context: Context) {
             val json = JsonParser.parseString(jsonStr).asJsonObject
             val text = json.get("text")?.asString?.trim() ?: ""
             
-            Log.d(TAG, "Vosk final: '$text' (wakeHot=$wakeHot)")
+            Log.d(TAG, "Vosk final: '$text' (wakeHot=$wakeHot, alwaysOn=$alwaysOnMode)")
             
-            if (wakeHot && text.isNotEmpty()) {
-                wakeHot = false
-                Log.d(TAG, "✓ Final command received: '$text'")
+            if (text.isEmpty()) {
+                if (wakeHot) {
+                    Log.d(TAG, "Waiting for command... (got empty text)")
+                }
+                return
+            }
+            
+            // Always-on mode: process any speech
+            if (alwaysOnMode) {
+                Log.d(TAG, "✓ Always-on: processing '$text'")
                 scope.launch(Dispatchers.Main) {
                     onFinal?.invoke(text)
                 }
-            } else if (wakeHot) {
-                Log.d(TAG, "Waiting for command... (got empty text)")
+                return
+            }
+            
+            // Wake word mode: only process if wake word was said
+            if (wakeHot) {
+                wakeHot = false
+                Log.d(TAG, "✓ Wake mode: command '$text'")
+                scope.launch(Dispatchers.Main) {
+                    onFinal?.invoke(text)
+                }
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error parsing final result", e)
