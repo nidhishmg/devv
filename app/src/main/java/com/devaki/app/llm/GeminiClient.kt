@@ -34,8 +34,9 @@ class GeminiClient(private val apiKey: String) {
         try {
             val requestBody = buildRequest(prompt, systemInstruction)
             
+            // Use gemini-1.5-flash for higher rate limits (free tier)
             val request = Request.Builder()
-                .url("$baseUrl/models/gemini-2.0-flash-exp:generateContent?key=$apiKey")
+                .url("$baseUrl/models/gemini-1.5-flash:generateContent?key=$apiKey")
                 .post(requestBody.toRequestBody("application/json".toMediaType()))
                 .build()
             
