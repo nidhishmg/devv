@@ -369,23 +369,28 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun callLLM(query: String) {
-        if (llmUrl.isEmpty()) {
-            ttsEngine.speak("I'm offline right now.")
+        // Check if we have Gemini or Ollama available
+        if (!geminiEnabled && llmUrl.isEmpty()) {
+            ttsEngine.speak("I'm offline right now. Please set up Gemini API key.")
             return
         }
         
         // Play thinking cue for longer queries
-        if (query.length > 20) {
+        if (query.length > 15) {
             ttsEngine.speak(Humanizer.thinkingCue())
         }
         
         lifecycleScope.launch {
             try {
                 val response = queryLLM(query)
-                ttsEngine.speak(response)
+                if (response.isNotEmpty()) {
+                    ttsEngine.speak(response)
+                } else {
+                    ttsEngine.speak("I didn't get a response. Please try again.")
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "LLM query failed", e)
-                ttsEngine.speak("Sorry, I couldn't process that.")
+                ttsEngine.speak("Sorry, I couldn't process that. Check your internet connection.")
             }
         }
     }
@@ -397,23 +402,38 @@ class MainActivity : AppCompatActivity() {
             You can:
             - Have natural conversations and share feelings
             - Discuss news, sports, entertainment, and current events
+            - Tell jokes and be entertaining
             - Offer life advice, motivation, and emotional support
-            - Chat casually about anything
+            - Answer questions about anything
             - Use humor and personality
             
             Keep responses conversational (2-3 sentences max for voice). Be warm, supportive, and genuine.""".trimIndent()
         
-        // Try Gemini first if enabled (for any query, not just web searches)
+        // Try Gemini first if enabled
         if (geminiEnabled && geminiClient != null) {
-            Log.d(TAG, "Using Gemini for web-grounded query")
-            val result = geminiClient?.query(query, systemPrompt)
-            if (result?.isSuccess == true) {
-                return@withContext result.getOrNull() ?: "I couldn't find that information."
+            Log.d(TAG, "Calling Gemini with query: $query")
+            try {
+                val result = geminiClient?.query(query, systemPrompt)
+                Log.d(TAG, "Gemini result: ${result?.isSuccess}, value: ${result?.getOrNull()?.take(100)}")
+                if (result?.isSuccess == true) {
+                    val response = result.getOrNull()
+                    if (!response.isNullOrEmpty()) {
+                        return@withContext response
+                    }
+                }
+                Log.w(TAG, "Gemini failed or empty response: ${result?.exceptionOrNull()?.message}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Gemini exception", e)
             }
-            Log.w(TAG, "Gemini failed, falling back to Ollama")
+        } else {
+            Log.w(TAG, "Gemini not enabled or client is null. geminiEnabled=$geminiEnabled, client=${geminiClient != null}")
         }
         
-        // Fallback to Ollama
+        // Fallback to Ollama (if configured)
+        if (llmUrl.isEmpty()) {
+            return@withContext "I'm having trouble connecting to my brain. Please check the internet."
+        }
+        
         val json = """
             {
                 "model": "phi3:mini",
