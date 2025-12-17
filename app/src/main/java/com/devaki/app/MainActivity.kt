@@ -189,6 +189,15 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun setupUI() {
+        // FAB to toggle controls panel
+        binding.fabMenu.setOnClickListener {
+            if (binding.controlsPanel.visibility == android.view.View.VISIBLE) {
+                binding.controlsPanel.visibility = android.view.View.GONE
+            } else {
+                binding.controlsPanel.visibility = android.view.View.VISIBLE
+            }
+        }
+        
         // Connect button
         binding.btnConnect.setOnClickListener {
             if (tcpClient.isConnected()) {
