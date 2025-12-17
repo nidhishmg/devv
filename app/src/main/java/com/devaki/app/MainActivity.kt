@@ -93,7 +93,7 @@ class MainActivity : AppCompatActivity() {
         // Uncomment and add your API key from https://aistudio.google.com/app/apikey
         lifecycleScope.launch {
             settings.setGeminiEnabled(true)
-            settings.setGeminiApiKey("AIzaSyDgV86kLkbnxq6WHpjNJMZRf4Sc-CJZGcE")
+            settings.setGeminiApiKey("AIzaSyDqD4UVYLbZhcHDZuo1Tu-mb-b3b6axKyk")
         }
         
         if (allPermissionsGranted()) {
