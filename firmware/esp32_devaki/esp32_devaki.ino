@@ -78,7 +78,7 @@ const int PWM_CHANNEL_R = 1;
 const int MAX_PWM_DELTA = 10;   // Max PWM change per loop for smooth ramping
 const int LOOP_DELAY_MS = 20;   // Main loop delay
 
-const int SAFE_DISTANCE_CM = 15; // Stop if obstacle closer than this
+const int SAFE_DISTANCE_CM = 10; // Stop if obstacle closer than this
 const int FOLLOW_MIN_CM = 30;    // Start backing up if closer
 const int FOLLOW_TARGET_CM = 50; // Ideal follow distance
 const int FOLLOW_MAX_CM = 100;   // Stop following if farther
