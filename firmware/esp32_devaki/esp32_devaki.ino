@@ -79,6 +79,10 @@ const int MAX_PWM_DELTA = 10;   // Max PWM change per loop for smooth ramping
 const int LOOP_DELAY_MS = 20;   // Main loop delay
 
 const int SAFE_DISTANCE_CM = 15; // Stop if obstacle closer than this
+const int FOLLOW_MIN_CM = 30;    // Start backing up if closer
+const int FOLLOW_TARGET_CM = 50; // Ideal follow distance
+const int FOLLOW_MAX_CM = 100;   // Stop following if farther
+const int FOLLOW_SPEED = 150;    // Base speed for follow mode
 
 // ============= GLOBAL STATE =============
 int currentLeftSpeed = 0;
@@ -90,6 +94,9 @@ String inputBuffer = "";
 #if USE_WIFI
   String wifiInputBuffer = "";
 #endif
+
+// Follow mode
+bool followModeEnabled = false;
 
 // ============= SETUP =============
 void setup() {
@@ -221,7 +228,12 @@ void loop() {
     }
   #endif
   
-  // Safety check - stop if obstacle detected
+  // Follow mode logic
+  if (followModeEnabled) {
+    followPerson();
+  }
+  
+  // Safety check - stop if obstacle detected (overrides everything)
   checkSafety();
   
   // Smooth PWM ramping
@@ -274,6 +286,15 @@ void processCommand(String cmd) {
   else if (cmd == "DIST") {
     // Send all distance readings as JSON
     sendDistanceData();
+  }
+  else if (cmd == "FOLLOW") {
+    followModeEnabled = true;
+    Serial.println("Follow mode ON");
+  }
+  else if (cmd == "NOFOLLOW" || cmd == "UNFOLLOW") {
+    followModeEnabled = false;
+    stopMotors();
+    Serial.println("Follow mode OFF");
   }
   else {
     Serial.println("Unknown command");
@@ -422,6 +443,62 @@ void sendDistanceData() {
       wifiClient.println(json);
     }
   #endif
+}
+
+void followPerson() {
+  // Read all front sensors
+  distFrontLeft = readUltrasonicCm(TRIG_FRONT_LEFT, ECHO_FRONT_LEFT);
+  distFrontCenter = readUltrasonicCm(TRIG_FRONT, ECHO_FRONT);
+  distFrontRight = readUltrasonicCm(TRIG_FRONT_RIGHT, ECHO_FRONT_RIGHT);
+  
+  // Find minimum distance (closest object/person)
+  int minFrontDist = min(min(distFrontLeft, distFrontCenter), distFrontRight);
+  
+  // If nothing detected in range, stop
+  if (minFrontDist > FOLLOW_MAX_CM) {
+    targetLeftSpeed = 0;
+    targetRightSpeed = 0;
+    return;
+  }
+  
+  // Determine which direction the person is
+  int leftDist = distFrontLeft;
+  int centerDist = distFrontCenter;
+  int rightDist = distFrontRight;
+  
+  // Calculate forward/backward speed based on distance
+  int forwardSpeed = 0;
+  if (minFrontDist < FOLLOW_MIN_CM) {
+    // Too close - back up
+    forwardSpeed = -FOLLOW_SPEED;
+  } else if (minFrontDist > FOLLOW_TARGET_CM + 10) {
+    // Too far - move forward
+    forwardSpeed = map(minFrontDist, FOLLOW_TARGET_CM, FOLLOW_MAX_CM, FOLLOW_SPEED/2, FOLLOW_SPEED);
+    forwardSpeed = constrain(forwardSpeed, 0, FOLLOW_SPEED);
+  } else {
+    // Good distance - stay put
+    forwardSpeed = 0;
+  }
+  
+  // Calculate turn based on left/right sensor difference
+  int turnSpeed = 0;
+  if (leftDist < rightDist - 20) {
+    // Person is more to the left - turn left
+    turnSpeed = map(rightDist - leftDist, 20, 100, 30, 80);
+    turnSpeed = constrain(turnSpeed, 30, 80);
+  } else if (rightDist < leftDist - 20) {
+    // Person is more to the right - turn right
+    turnSpeed = -map(leftDist - rightDist, 20, 100, 30, 80);
+    turnSpeed = constrain(turnSpeed, -80, -30);
+  }
+  
+  // Apply speeds (turn + forward)
+  targetLeftSpeed = forwardSpeed - turnSpeed;
+  targetRightSpeed = forwardSpeed + turnSpeed;
+  
+  // Constrain speeds
+  targetLeftSpeed = constrain(targetLeftSpeed, -200, 200);
+  targetRightSpeed = constrain(targetRightSpeed, -200, 200);
 }
 
 void checkSafety() {
